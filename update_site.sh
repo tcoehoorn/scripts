@@ -14,6 +14,8 @@ terminus site backups get --element="files" --to=$HOME/tmp --latest --site="$1" 
 sudo rm -rf ~/work/impetus/$1/sites/default/files.bak
 mv ~/work/impetus/$1/sites/default/files/ ~/work/impetus/$1/sites/default/files.bak
 
+cd ~/tmp
+
 tar xzvf $1_$2*.tar.gz -C ~/work/impetus/$1/sites/default/
 mv ~/work/impetus/$1/sites/default/files_* ~/work/impetus/$1/sites/default/files
 chmod 777 ~/work/impetus/$1/sites/default/files
