@@ -1,4 +1,7 @@
 #! /bin/bash
 
-# cat $HOME/scripts/data/settings.php >> $HOME/work/impetus/impetusmaster/sites/default/settings.php
-echo "include_once('local.settings.php');" >> ./sites/default/settings.php
+settings_file="./sites/default/settings.php"
+
+vim -c "70,83s/^/\/\/ /" -c "wq" $settings_file
+echo "include_once('local.settings.php');" >> $settings_file
+git update-index --assume-unchanged $settings_file
