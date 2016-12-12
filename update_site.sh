@@ -34,6 +34,11 @@ rm update_db_tmp.sql
 
 cd ~/work/impetus/$1
 
+drush cron-disable 'scheduled_pet_cron'
+drush cron-disable 'comment_notifications_cron'
 drush en bootstrap_tour -y
 drush dis redis -y
+drush updb
+drush cc drush
+drush rr
 drush cc all
