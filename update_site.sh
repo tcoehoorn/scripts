@@ -33,12 +33,15 @@ mv ~/work/impetus/$1/sites/default/files_* ~/work/impetus/$1/sites/default/files
 chmod -R 777 ~/work/impetus/$1/sites/default/files
 
 gunzip $sql_path
+mv $sql_file $1.sql
 
-sed -e "s/impetusmaster\.sql/$sql_file/g" ~/scripts/update_db.sql > update_db_tmp.sql
+sed -e "s/impetusmaster/$1/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
 mysql -u root -p < update_db_tmp.sql
 
 rm update_db_tmp.sql
+
+mv $1.sql $sql_file
 gzip $sql_file
 
 cd ~/work/impetus/$1
