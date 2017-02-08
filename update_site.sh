@@ -43,14 +43,11 @@ gzip $sql_file
 
 cd ~/work/impetus/$1
 
-drush cron-disable 'scheduled_pet_cron'
-drush cron-disable 'comment_notifications_cron'
-
 drush en bootstrap_tour -y
 drush dis redis -y
-drush updb
+drush updb -y
 drush cc drush
 drush rr
 drush cc all
 
-# php ./private/scripts/disable_scheduled_emails.php
+php ./private/scripts/disable_scheduled_emails.php
