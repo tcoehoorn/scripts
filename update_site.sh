@@ -5,31 +5,41 @@ if [ "$#" -ne 2 ]; then
     exit
 fi
 
-terminus env:clear-cache "$1.$2"
-terminus backup:create "$1.$2" --element="database"
-terminus backup:get "$1.$2" --element="database" --to=$HOME/tmp/$1.sql.gz
-terminus backup:create "$1.$2" --element="files"
-terminus backup:get "$1.$2" --element="files" --to=$HOME/tmp/$1_$2.tar.gz
+today=`date +%Y-%m-%d`
+
+sql_file=$1_$2_$today.sql
+sql_zip=$sql_file.gz
+sql_path=$HOME/tmp/$sql_zip
+files_zip=$1_$2_$today.tar.gz
+files_path=$HOME/tmp/$files_zip
+
+if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
+    rm $HOME/tmp/$1_$2_*
+
+    terminus env:clear-cache "$1.$2"
+    terminus backup:create "$1.$2" --element="database"
+    terminus backup:get "$1.$2" --element="database" --to=$sql_path
+    terminus backup:create "$1.$2" --element="files"
+    terminus backup:get "$1.$2" --element="files" --to=$files_path
+fi
 
 sudo rm -rf ~/work/impetus/$1/sites/default/files.bak
 mv ~/work/impetus/$1/sites/default/files/ ~/work/impetus/$1/sites/default/files.bak
 
 cd ~/tmp
 
-tar xzvf $1_$2.tar.gz -C ~/work/impetus/$1/sites/default/
+tar xzvf $files_zip -C ~/work/impetus/$1/sites/default/
 mv ~/work/impetus/$1/sites/default/files_* ~/work/impetus/$1/sites/default/files
 chmod -R 777 ~/work/impetus/$1/sites/default/files
 
-rm $1_$2.tar.gz
+gunzip $sql_path
 
-gunzip $1.sql.gz
-
-sed -e "s/impetusmaster/$1/g" ~/scripts/update_db.sql > update_db_tmp.sql
+sed -e "s/impetusmaster\.sql/$sql_file/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
 mysql -u root -p < update_db_tmp.sql
 
 rm update_db_tmp.sql
-rm $1.sql
+gzip $sql_file
 
 cd ~/work/impetus/$1
 
