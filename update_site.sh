@@ -16,10 +16,14 @@ files_path=$HOME/tmp/$files_zip
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     rm $HOME/tmp/$1_$2_*
 
-    terminus env:clear-cache "$1.$2"
-    terminus backup:create "$1.$2" --element="database"
+    # backups are created daily on live sites
+    if [ $2 != "live" ]; then
+      terminus env:clear-cache "$1.$2"
+      terminus backup:create "$1.$2" --element="database"
+      terminus backup:create "$1.$2" --element="files"
+    fi
+
     terminus backup:get "$1.$2" --element="database" --to=$sql_path
-    terminus backup:create "$1.$2" --element="files"
     terminus backup:get "$1.$2" --element="files" --to=$files_path
 fi
 
