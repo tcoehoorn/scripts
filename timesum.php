@@ -7,25 +7,27 @@ class Time {
         $this->seconds = $seconds;
     }
 
-    public function calcHours() {
-        $minutes = $this->seconds / 60;
-        return floor($minutes / 60);
-    }
-
-    public function calcExtraMinutes() {
-        $minutes = $this->seconds / 60;
-        return $minutes - ($this->calcHours() * 60);
-    }
-
-    public function toString() {
+    public function __toString() {
         $result = '';
         if ($this->calcHours() > 0) {
             $result .= $this->calcHours() . 'h ';
         }
 
-        $result .= $this->calcExtraMinutes() . "m\n";
+        $result .= $this->calcExtraMinutes() . "m";
 
         return $result;
+    }
+
+    private function calcMinutes() {
+        return $this->seconds / 60;
+    }
+
+    private function calcHours() {
+        return floor($this->calcMinutes() / 60);
+    }
+
+    private function calcExtraMinutes() {
+        return $this->calcMinutes() - ($this->calcHours() * 60);
     }
 }
 
@@ -61,10 +63,9 @@ foreach ($time_sums as $task => $seconds) {
     $time = new Time($seconds);
     $total_seconds += $seconds;
 
-
-    print $task . ': ' . $time->toString();
+    print $task . ': ' . $time . "\n";
 }
 
 $total_time = new Time($total_seconds);
 
-print "\nTotal: " . $total_time->toString();
+print "\nTotal: " . $total_time . "\n";
