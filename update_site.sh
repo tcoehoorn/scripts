@@ -7,14 +7,16 @@ fi
 
 today=`date +%Y-%m-%d`
 
+backup_dir=$HOME/tmp/backup
 sql_file=$1_$2_$today.sql
 sql_zip=$sql_file.gz
-sql_path=$HOME/tmp/$sql_zip
+sql_path=$backup_dir/$sql_zip
 files_zip=$1_$2_$today.tar.gz
-files_path=$HOME/tmp/$files_zip
+files_path=$backup_dir/$files_zip
+drupal_dir=$HOME/work/impetus/$1
 
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
-    rm $HOME/tmp/$1_$2_*
+    rm $backup_dir/$1_$2_*
 
     # backups are created daily on live sites
     if [ $2 != "live" ]; then
@@ -27,21 +29,20 @@ if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     terminus backup:get "$1.$2" --element="files" --to=$files_path
 fi
 
-sudo rm -rf ~/work/impetus/$1/sites/default/files.bak
-mv ~/work/impetus/$1/sites/default/files/ ~/work/impetus/$1/sites/default/files.bak
+sudo rm -rf $drupal_dir/sites/default/files
 
-cd ~/tmp
+cd $backup_dir
 
-tar xzvf $files_zip -C ~/work/impetus/$1/sites/default/
-mv ~/work/impetus/$1/sites/default/files_* ~/work/impetus/$1/sites/default/files
-chmod -R 777 ~/work/impetus/$1/sites/default/files
+tar xzvf $files_zip -C $drupal_dir/sites/default/
+mv $drupal_dir/sites/default/files_* $drupal_dir/sites/default/files
+docker exec docker_$1_1 /bin/chown -R www-data:www-data sites/default/files
 
 gunzip $sql_path
 mv $sql_file $1.sql
 
 sed -e "s/impetusmaster/$1/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
-mysql -u root -p < update_db_tmp.sql
+mysql -u root -p -h dbhost < update_db_tmp.sql
 
 rm update_db_tmp.sql
 
@@ -50,11 +51,7 @@ gzip $sql_file
 
 cd ~/work/impetus/$1
 
-drush en bootstrap_tour -y
-drush dis redis -y
 drush updb -y
-drush cc drush
-drush rr
 drush cc all
 
 php ./private/scripts/disable_scheduled_emails.php
