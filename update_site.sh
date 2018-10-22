@@ -51,7 +51,7 @@ gzip $sql_file
 
 cd ~/work/impetus/$1
 
-docker exec docker_$1_1 drush updb -y
 docker exec docker_$1_1 drush cc all
+docker exec docker_$1_1 drush updb -y
 
 php ./private/scripts/disable_scheduled_emails.php
