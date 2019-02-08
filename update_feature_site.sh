@@ -1,0 +1,58 @@
+#! /bin/bash
+
+if [ "$#" -ne 3 ]; then
+    echo "Usage: update_feature_site.sh <site> <client> <env>"
+    exit
+fi
+
+today=`date +%Y-%m-%d`
+
+backup_dir=$HOME/tmp/backup
+sql_file=$2_$3_$today.sql
+sql_zip=$sql_file.gz
+sql_path=$backup_dir/$sql_zip
+files_zip=$2_$3_$today.tar.gz
+files_path=$backup_dir/$files_zip
+drupal_dir=$HOME/work/impetus/$1
+client="$2.$3"
+
+if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
+    rm $backup_dir/$2_$3_*
+
+    # backups are created daily on live sites
+    if [ $3 != "live" ]; then
+      terminus env:clear-cache "$client"
+      terminus backup:create "$client" --element="database"
+      terminus backup:create "$client" --element="files"
+    fi
+
+    terminus backup:get "$client" --element="database" --to=$sql_path
+    terminus backup:get "$client" --element="files" --to=$files_path
+fi
+
+sudo rm -rf $drupal_dir/sites/default/files
+
+cd $backup_dir
+
+tar xzvf $files_zip -C $drupal_dir/sites/default/
+mv $drupal_dir/sites/default/files_* $drupal_dir/sites/default/files
+docker exec docker_$1_1 /bin/chown -R www-data:www-data sites/default/files
+
+gunzip $sql_path
+mv $sql_file $1.sql
+
+sed -e "s/impetusmaster/$1/g" ~/scripts/update_db.sql > update_db_tmp.sql
+
+mysql -u root -p -h dbhost < update_db_tmp.sql
+
+rm update_db_tmp.sql
+
+mv $1.sql $sql_file
+gzip $sql_file
+
+cd ~/work/impetus/$1
+
+docker exec docker_$1_1 drush cc all
+docker exec docker_$1_1 drush updb -y
+
+php ./private/scripts/disable_scheduled_emails.php
