@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ "$#" -lt 2 ]; then
-    echo "Usage: update_feature_site.sh <client> <env> <site>"
+    echo "Usage: update_feature.sh <client> <env> <site>"
     exit
 fi
 
