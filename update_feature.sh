@@ -7,27 +7,29 @@ fi
 
 today=`date +%Y-%m-%d`
 
-site="iip1"
+psite=$1
+penv=$2
+devdir="iip1"
 
 if [ "$#" -eq 3 ]; then
-    $site = $3
+    $devdir = $3
 fi
 
 backup_dir=$HOME/tmp/backup
-sql_file=$1_$2_$today.sql
+sql_file="$psite"_"$penv"_"$today".sql
 sql_zip=$sql_file.gz
 sql_path=$backup_dir/$sql_zip
-files_zip=$1_$2_$today.tar.gz
+files_zip="$psite"_"$penv"_"$today".tar.gz
 files_path=$backup_dir/$files_zip
-drupal_dir=$HOME/work/impetus/$site
-client="$1.$2"
-container=docker_"$site"_1
+drupal_dir=$HOME/work/impetus/$devdir
+client="$psite.$penv"
+container=docker_"$devdir"_1
 
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
-    rm $backup_dir/$1_$2_*
+    rm $backup_dir/"$psite"_"$penv"_*
 
     # backups are created daily on live sites
-    if [ $2 != "live" ]; then
+    if [ $penv != "live" ]; then
       terminus env:clear-cache "$client"
       terminus backup:create "$client" --element="database"
       terminus backup:create "$client" --element="files"
@@ -46,18 +48,18 @@ mv $drupal_dir/sites/default/files_* $drupal_dir/sites/default/files
 docker exec $container /bin/chown -R www-data:www-data sites/default/files
 
 gunzip $sql_path
-mv $sql_file $site.sql
+mv $sql_file $devdir.sql
 
-sed -e "s/impetusmaster/$site/g" ~/scripts/update_db.sql > update_db_tmp.sql
+sed -e "s/impetusmaster/$devdir/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
 mysql -u root -p -h dbhost < update_db_tmp.sql
 
 rm update_db_tmp.sql
 
-mv $site.sql $sql_file
+mv $devdir.sql $sql_file
 gzip $sql_file
 
-cd ~/work/impetus/$site
+cd ~/work/impetus/$devdir
 
 docker exec $container drush cc all
 docker exec $container drush updb -y
