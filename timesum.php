@@ -31,7 +31,7 @@ class Time {
   }
 }
 
-$file_path = '/home/trevor/tmp/time.csv';
+$file_path = getenv('HOME') . '/tmp/time.csv';
 $time_index = 0;
 $task_index = 1;
 $prev_time = NULL;
