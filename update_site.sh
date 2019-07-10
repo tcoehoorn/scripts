@@ -43,7 +43,7 @@ mv $sql_file $schema.sql
 
 sed -e "s/impetusmaster/$schema/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
-mysql -u root -h dbhost < update_db_tmp.sql
+mysql -u root -h dbhost -p < update_db_tmp.sql
 
 rm update_db_tmp.sql
 
