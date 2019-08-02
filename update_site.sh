@@ -13,7 +13,8 @@ sql_zip=$sql_file.gz
 sql_path=$backup_dir/$sql_zip
 files_zip=$1_$2_$today.tar.gz
 files_path=$backup_dir/$files_zip
-drupal_dir=$HOME/work/impetus/$1
+drupal_dir=/vagrant
+schema=iip3
 
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     rm $backup_dir/$1_$2_*
@@ -35,23 +36,21 @@ cd $backup_dir
 
 tar xzvf $files_zip -C $drupal_dir/sites/default/
 mv $drupal_dir/sites/default/files_* $drupal_dir/sites/default/files
-docker exec docker_$1_1 /bin/chown -R www-data:www-data sites/default/files
+docker exec docker_portal_1 /bin/chown -R www-data:www-data sites/default/files
 
 gunzip $sql_path
-mv $sql_file $1.sql
+mv $sql_file $schema.sql
 
-sed -e "s/impetusmaster/$1/g" ~/scripts/update_db.sql > update_db_tmp.sql
+sed -e "s/impetusmaster/$schema/g" ~/scripts/update_db.sql > update_db_tmp.sql
 
-mysql -u root -p -h dbhost < update_db_tmp.sql
+mysql -u root -h dbhost -p < update_db_tmp.sql
 
 rm update_db_tmp.sql
 
-mv $1.sql $sql_file
+mv $schema.sql $sql_file
 gzip $sql_file
 
-cd ~/work/impetus/$1
+docker exec docker_portal_1 drush cc all
+docker exec docker_portal_1 drush updb -y
 
-docker exec docker_$1_1 drush cc all
-docker exec docker_$1_1 drush updb -y
-
-php ./private/scripts/disable_scheduled_emails.php
+docker exec docker_portal_1 php ./private/scripts/disable_scheduled_emails.php
