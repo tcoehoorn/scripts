@@ -1,6 +1,6 @@
 #! /bin/bash
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 2 ]; then
     echo "Usage: update_site.sh <site> <env>"
     exit
 fi
@@ -19,8 +19,7 @@ schema=iip3
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     rm $backup_dir/$1_$2_*
 
-    # backups are created daily on live sites
-    if [ $2 != "live" ]; then
+    if [ $2 != "live" ] && [ "$3" != "--use-backup" ]; then
       terminus env:clear-cache "$1.$2"
       terminus backup:create "$1.$2" --element="database"
       terminus backup:create "$1.$2" --element="files"
