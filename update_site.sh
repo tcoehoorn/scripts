@@ -49,7 +49,7 @@ rm update_db_tmp.sql
 mv $schema.sql $sql_file
 gzip $sql_file
 
-docker exec docker_portal_1 drush cc all
-docker exec docker_portal_1 drush updb -y
-
-docker exec docker_portal_1 php ./private/scripts/disable_scheduled_emails.php
+cd $drupal_dir
+drush cc all
+drush updb -y
+php ./private/scripts/disable_scheduled_emails.php
