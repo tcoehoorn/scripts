@@ -31,7 +31,7 @@ class Time {
   }
 }
 
-$file_path = getenv('HOME') . '/tmp/time.csv';
+$file_path = '/cygdrive/c/Users/tcoeh/work/impetus/docs/time.csv';
 $time_index = 0;
 $task_index = 1;
 $prev_time = NULL;
