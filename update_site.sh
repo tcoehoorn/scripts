@@ -29,6 +29,10 @@ if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     terminus backup:get "$1.$2" --element="files" --to=$files_path
 fi
 
+pushd $drupal_dir
+drush cc all
+popd
+
 sudo rm -rf $drupal_dir/sites/default/files
 
 cd $backup_dir
