@@ -15,6 +15,8 @@ files_zip=$1_$2_$today.tar.gz
 files_path=$backup_dir/$files_zip
 drupal_dir=/vagrant
 schema=iip3
+old_setup_file=./private/scripts/disable_scheduled_emails.php
+new_setup_file=./private/scripts/setup_dev_site.php
 
 if [ ! -e $sql_path ] || [ ! -e $files_path ]; then
     rm $backup_dir/$1_$2_*
@@ -56,4 +58,9 @@ gzip $sql_file
 cd $drupal_dir
 drush cc all
 drush updb -y
-php ./private/scripts/disable_scheduled_emails.php
+
+if [ -e "$old_setup_file" ]; then
+    php $old_setup_file
+else
+    php $new_setup_file
+fi
